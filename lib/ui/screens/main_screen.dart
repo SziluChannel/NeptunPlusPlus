@@ -35,21 +35,24 @@ class _NeptunAppState extends State<NeptunApp> {
           create: (context) => SettingsViewmodel(),
         ),
       ],
-      child: MaterialApp(
-        title: "Neptun app",
-        home: TimetableScreen(),
-        theme: ThemeData.from(
-          colorScheme: ColorScheme.fromSeed(
-              seedColor: Color.fromARGB(255, 78, 178, 243)),
-        ),
-        darkTheme: ThemeData.from(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color.fromARGB(255, 78, 178, 243),
-            brightness: Brightness.dark,
+      builder: (context, child) {
+        return MaterialApp(
+          title: "Neptun app",
+          home: TimetableScreen(),
+          theme: ThemeData.from(
+            colorScheme: ColorScheme.fromSeed(
+                seedColor: Color.fromARGB(255, 78, 178, 243)),
           ),
-        ),
-      ),
+          darkTheme: ThemeData.from(
+            useMaterial3: true,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color.fromARGB(255, 78, 178, 243),
+              brightness: Brightness.dark,
+            ),
+          ),
+          themeMode: Provider.of<SettingsViewmodel>(context).themeMode,
+        );
+      },
     );
   }
 }

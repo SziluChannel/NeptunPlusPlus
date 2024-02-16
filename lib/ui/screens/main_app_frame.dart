@@ -126,7 +126,9 @@ class _AppFrameState extends State<AppFrame> {
       loginViewmodel.logout();
     } else {
       if (await loginViewmodel.getCredentialsAndAutoLogin()) {
-        toAuth.call();
+        if (!loginViewmodel.authenticated) {
+          toAuth.call();
+        }
       } else {
         toLogin.call();
       }
