@@ -6,6 +6,7 @@ import 'package:neptun_app/ui/screens/personal_screen.dart';
 import 'package:neptun_app/ui/screens/settings_screen.dart';
 import 'package:neptun_app/ui/screens/timetable_screen.dart';
 import 'package:neptun_app/ui/viewmodels/login_viewmodel.dart';
+import 'package:neptun_app/ui/viewmodels/settings_viewmodel.dart';
 import 'package:provider/provider.dart';
 
 class AppFrame extends StatefulWidget {
@@ -26,6 +27,20 @@ class AppFrame extends StatefulWidget {
 
 class _AppFrameState extends State<AppFrame> {
   static var selectedIndex = 1;
+
+  @override
+  void initState() {
+    SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+      Future.microtask(() async {
+        Provider.of<SettingsViewmodel>(
+          context,
+          listen: false,
+        ).getTheme();
+      });
+    });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     var loginViewmodel = context.watch<LoginViewmodel>();

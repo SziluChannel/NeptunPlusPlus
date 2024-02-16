@@ -33,7 +33,7 @@ class LoginViewmodel extends ChangeNotifier {
       autoLogin = result;
 
       if (result && hash.isNotEmpty) {
-        bool authResult = await authenticate(
+        await authenticate(
           generateKey(hash),
         );
       }

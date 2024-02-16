@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:neptun_app/data/local/credentials_database.dart';
 import 'package:neptun_app/data/models/credential.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsViewmodel extends ChangeNotifier {
   CredentialsDatabaseService credentialsDatabaseService =
@@ -60,9 +61,20 @@ class SettingsViewmodel extends ChangeNotifier {
       SchedulerBinding.instance.platformDispatcher.platformBrightness ==
           Brightness.dark;
 
-  void setTheme(bool isDark) {
+  void setTheme(bool isDark) async {
     themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
     darkTheme = isDark;
+
+    var prefs = await SharedPreferences.getInstance();
+    prefs.setBool("darkTheme", isDark);
     notifyListeners();
+  }
+
+  void getTheme() async {
+    var prefs = await SharedPreferences.getInstance();
+    var dark = prefs.getBool("darkTheme");
+    if (dark != null) {
+      setTheme(dark);
+    }
   }
 }
