@@ -15,17 +15,20 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool saveKey = false;
+  bool savePassword = false;
   String secretKey = "";
 
   @override
   void initState() {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       Future.microtask(() async {
-        var result =
-            await Provider.of<SettingsViewmodel>(context, listen: false)
-                .isKeySaved();
+        var settingsViewmodel =
+            Provider.of<SettingsViewmodel>(context, listen: false);
+        var key = await settingsViewmodel.isKeySaved();
+        var pass = await settingsViewmodel.isPasswordSaved();
         setState(() {
-          saveKey = result;
+          saveKey = key;
+          savePassword = pass;
         });
       });
     });
@@ -47,75 +50,120 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Card twoFactorAuthKey(SettingsViewmodel settingsViewmodel) {
-    return Card(
-      child: Padding(
-        padding:
-            const EdgeInsets.only(left: 30, right: 30, top: 10, bottom: 10),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Builder twoFactorAuthKey(SettingsViewmodel settingsViewmodel) {
+    return Builder(builder: (context) {
+      if (savePassword) {
+        return Card(
+          child: Padding(
+            padding:
+                const EdgeInsets.only(left: 30, right: 30, top: 10, bottom: 10),
+            child: Column(
               children: [
-                Text("Save two-factor authentication secret key"),
-                Switch.adaptive(
-                    value: saveKey,
-                    onChanged: settingsViewmodel.keySaved
-                        ? null
-                        : (value) {
-                            setState(() {
-                              saveKey = value;
-                            });
-                          }),
-              ],
-            ),
-            Builder(builder: (context) {
-              if (settingsViewmodel.keySaved) {
-                return Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        print(
-                            "Enter creds to view creds dialog should pop up...");
-                      },
-                      child: Text("See saved key"),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        print("Are you sure dialog should pop up...");
-                      },
-                      child: Text("Clear all credentials"),
-                    ),
+                    Text("Save two-factor authentication secret key"),
+                    Switch.adaptive(
+                        value: saveKey,
+                        onChanged: settingsViewmodel.keySaved
+                            ? null
+                            : (value) {
+                                setState(() {
+                                  saveKey = value;
+                                });
+                              }),
                   ],
-                );
-              } else {
-                return Row(
+                ),
+                Builder(builder: (context) {
+                  if (settingsViewmodel.keySaved) {
+                    return savedKeyArea(context);
+                  } else {
+                    return saveKeyArea(settingsViewmodel);
+                  }
+                }),
+              ],
+            ),
+          ),
+        );
+      } else {
+        return SizedBox.shrink();
+      }
+    });
+  }
+
+  Row saveKeyArea(SettingsViewmodel settingsViewmodel) {
+    return Row(
+      children: [
+        Expanded(
+          child: TextFormField(
+            enabled: saveKey,
+            initialValue: secretKey,
+            onChanged: (value) {
+              secretKey = value;
+            },
+          ),
+        ),
+        ElevatedButton(
+          onPressed: !saveKey
+              ? null
+              : () {
+                  settingsViewmodel.saveAuthSecretKey(secretKey);
+                },
+          child: Text("Save"),
+        ),
+      ],
+    );
+  }
+
+  Row savedKeyArea(BuildContext context) {
+    String password = "";
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        ElevatedButton(
+          onPressed: () => showDialog(
+            context: context,
+            builder: (context) {
+              return Dialog(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Expanded(
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text("Enter password to show stuff!!!"),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
                       child: TextFormField(
-                        enabled: saveKey,
-                        initialValue: secretKey,
                         onChanged: (value) {
-                          secretKey = value;
+                          password = value;
                         },
                       ),
                     ),
-                    ElevatedButton(
-                      onPressed: !saveKey
-                          ? null
-                          : () {
-                              settingsViewmodel.saveAuthSecretKey(secretKey);
-                            },
-                      child: Text("Save"),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text("Verify..."),
+                      ),
                     ),
                   ],
-                );
-              }
-            }),
-          ],
+                ),
+              );
+            },
+          ),
+          child: Text("See saved key"),
         ),
-      ),
+        ElevatedButton(
+          onPressed: () {
+            print("Are you sure dialog should pop up...");
+          },
+          child: Text("Clear all credentials"),
+        ),
+      ],
     );
   }
 
