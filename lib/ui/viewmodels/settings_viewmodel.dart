@@ -10,6 +10,7 @@ class SettingsViewmodel extends ChangeNotifier {
 
   bool keySaved = false;
   bool passwordSaved = false;
+  String secretKey = "";
 
   Future<bool> isKeySaved() async {
     keySaved = false;
@@ -37,6 +38,24 @@ class SettingsViewmodel extends ChangeNotifier {
       return creds.first.password == password ? creds.first.hash : "";
     }
     return "";
+  }
+
+  Future<bool> verifyPassword(String password) async {
+    var creds = await credentialsDatabaseService.getCredentials();
+
+    if (creds.isNotEmpty) {
+      if (creds.first.password == password) {
+        secretKey = creds.first.hash;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void clearCredentials() async {
+    credentialsDatabaseService.deleteCredentials();
+    keySaved = false;
+    notifyListeners();
   }
 
   void saveAuthSecretKey(String secretKey) async {
@@ -72,6 +91,8 @@ class SettingsViewmodel extends ChangeNotifier {
         ),
       );
     }
+    keySaved = true;
+    notifyListeners();
   }
 
   //THEME SECTION

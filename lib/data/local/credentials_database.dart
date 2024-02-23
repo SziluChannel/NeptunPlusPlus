@@ -24,6 +24,11 @@ class CredentialsDatabaseService {
     );
   }
 
+  void deleteCredentials() async {
+    Database db = await NeptunDatabase().database;
+    db.delete("credentials");
+  }
+
   Future<List<Credential>> getCredentials() async {
     Database db = await NeptunDatabase().database;
 

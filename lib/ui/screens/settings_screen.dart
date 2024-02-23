@@ -76,7 +76,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 Builder(builder: (context) {
                   if (settingsViewmodel.keySaved) {
-                    return savedKeyArea(context);
+                    return savedKeyArea(
+                      context,
+                      settingsViewmodel,
+                    );
                   } else {
                     return saveKeyArea(settingsViewmodel);
                   }
@@ -107,7 +110,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onPressed: !saveKey
               ? null
               : () {
-                  settingsViewmodel.saveAuthSecretKey(secretKey);
+                  setState(() {
+                    settingsViewmodel.saveAuthSecretKey(secretKey);
+                    saveKey = true;
+                  });
                 },
           child: Text("Save"),
         ),
@@ -115,55 +121,183 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Row savedKeyArea(BuildContext context) {
-    String password = "";
+  Row savedKeyArea(BuildContext context, SettingsViewmodel settingsViewmodel) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         ElevatedButton(
-          onPressed: () => showDialog(
-            context: context,
-            builder: (context) {
-              return Dialog(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text("Enter password to show stuff!!!"),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextFormField(
-                        onChanged: (value) {
-                          password = value;
-                        },
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: Text("Verify..."),
-                      ),
-                    ),
-                  ],
-                ),
+          onPressed: () => verifyPasswordDialog(
+            context,
+            () {
+              Navigator.pop(context);
+              secretKeyDialog(
+                context,
+                settingsViewmodel.secretKey,
               );
             },
+            settingsViewmodel,
           ),
           child: Text("See saved key"),
         ),
         ElevatedButton(
-          onPressed: () {
-            print("Are you sure dialog should pop up...");
-          },
+          onPressed: () => verifyPasswordDialog(
+            context,
+            () {
+              Navigator.pop(context);
+              areYouSureDialog(context, () {
+                Navigator.pop(context);
+                settingsViewmodel.clearCredentials();
+              });
+            },
+            settingsViewmodel,
+          ),
           child: Text("Clear all credentials"),
         ),
       ],
+    );
+  }
+
+  Future<dynamic> areYouSureDialog(BuildContext context, VoidCallback onOk) {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return Dialog(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text("Are you sure?"),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text("Cancel"),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => onOk(),
+                        child: Text("Ok"),
+                      ),
+                    ],
+                  ),
+                )
+              ],
+            ),
+          );
+        });
+  }
+
+  Future<dynamic> secretKeyDialog(BuildContext context, String secretKey) {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return Dialog(
+            child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Padding(
+                    // the exit button
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          icon: Icon(Icons.close),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text("Your code:"),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: SelectableText(secretKey),
+                  ),
+                ]),
+          );
+        });
+  }
+
+  Future<dynamic> verifyPasswordDialog(
+    BuildContext context,
+    VoidCallback onSuccess,
+    SettingsViewmodel settingsViewmodel,
+  ) {
+    String password = "";
+    return showDialog(
+      context: context,
+      builder: (context) {
+        String errorMessage = "";
+        return Dialog(
+          child: StatefulBuilder(builder: (context, StateSetter stateSetter) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        icon: Icon(Icons.close),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text("Enter password to show stuff!!!"),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextFormField(
+                    obscureText: true,
+                    onChanged: (value) {
+                      password = value;
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(errorMessage),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      var result =
+                          await settingsViewmodel.verifyPassword(password);
+
+                      stateSetter.call(() {
+                        result ? onSuccess() : "";
+                        errorMessage = "Invalid password!";
+                      });
+                    },
+                    child: Text("Verify..."),
+                  ),
+                ),
+              ],
+            );
+          }),
+        );
+      },
     );
   }
 
