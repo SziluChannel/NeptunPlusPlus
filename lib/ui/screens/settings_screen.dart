@@ -146,6 +146,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Navigator.pop(context);
               areYouSureDialog(context, () {
                 Navigator.pop(context);
+                settingsViewmodel.clearKey();
+              });
+            },
+            settingsViewmodel,
+          ),
+          child: Text("Clear the key"),
+        ),
+        ElevatedButton(
+          onPressed: () => verifyPasswordDialog(
+            context,
+            () {
+              Navigator.pop(context);
+              areYouSureDialog(context, () {
+                Navigator.pop(context);
                 settingsViewmodel.clearCredentials();
               });
             },

@@ -9,14 +9,19 @@ class MessagesApiService {
 
   final messagePath = "/main.aspx";
 
-  Future<Result<List<Message>, String>> getMessages(DateTime lastMessageDate,
-      {int messageCount = -1}) async {
+  Future<Result<List<Message>, String>> getMessages(
+      DateTime lastFirstMessageDate,
+      {bool isRefresh = true}) async {
     try {
       var response = await ApiService.dio.get(
         messagesPath,
       );
 
-      var messages = await extractMessages(response.data);
+      var messages = await extractMessages(
+        response.data,
+        lastFirstMessageDate,
+        isRefresh,
+      );
 
       return Result.Ok(messages);
     } catch (e) {
@@ -24,7 +29,11 @@ class MessagesApiService {
     }
   }
 
-  Future<List<Message>> extractMessages(String html) async {
+  Future<List<Message>> extractMessages(
+    String html,
+    DateTime lastFirstMessageDate,
+    bool isRefresh,
+  ) async {
     try {
       var document = parse(html);
 
@@ -36,29 +45,47 @@ class MessagesApiService {
           .getElementsByTagName("tr")
           .toList();
 
-      return Future.wait(tbody?.sublist(0, 10).map((e) {
-            var span = e.getElementsByTagName("span").firstOrNull;
+      return Future.wait(tbody
+              ?.map((e) {
+                // a sublist marad, max 10 üzenetet loadolunk egyszerre
+                var span = e.getElementsByTagName("span").firstOrNull;
 
-            var id =
-                int.tryParse(span?.attributes["onclick"]?.split("'")[1] ?? "");
+                var id = int.tryParse(
+                    span?.attributes["onclick"]?.split("'")[1] ?? "");
 
-            var tdk = e.getElementsByTagName("td");
+                var tdk = e.getElementsByTagName("td");
 
-            return Message(
-                id: id ?? -1,
-                date: getDateFromPattern(tdk.last.text),
-                title: span?.text.trim() ?? "",
-                body: "",
-                sender: tdk.getRange(4, 5).firstOrNull?.text.trim() ?? "");
-          }).map((e) async {
-            return Message(
-              id: e.id,
-              title: e.title,
-              date: e.date,
-              body: await getMessage(e.id),
-              sender: e.sender,
-            );
-          }).toList() ??
+                return Message(
+                    id: id ?? -1,
+                    date: getDateFromPattern(tdk.last.text),
+                    title: span?.text.trim() ?? "",
+                    body: "",
+                    sender: tdk.getRange(4, 5).firstOrNull?.text.trim() ?? "");
+              })
+              .where((element) {
+                if (isRefresh) {
+                  // ha frissitünk akkor a dátumnál újabbak kellenek
+                  return element.date.millisecondsSinceEpoch >
+                      lastFirstMessageDate.millisecondsSinceEpoch;
+                } else {
+                  // ha nem frissitünk akkor a dátum előtti utolsó 10 kell
+                  return element.date.millisecondsSinceEpoch <
+                      lastFirstMessageDate.millisecondsSinceEpoch;
+                }
+              })
+              .toList()
+              .sublist(
+                  0, 10) // első 10 et vesszük, nem töltünk többet, mert lassú
+              .map((e) async {
+                return Message(
+                  id: e.id,
+                  title: e.title,
+                  date: e.date,
+                  body: await getMessage(e.id),
+                  sender: e.sender,
+                );
+              })
+              .toList() ??
           List.empty());
     } catch (e) {
       return List.empty();

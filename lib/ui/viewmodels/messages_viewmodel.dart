@@ -13,12 +13,14 @@ class MessagesViewmodel extends ChangeNotifier {
 
   int selectedMessageId = 0;
 
-  void getMessages() async {
+  void getMessages({bool loadMore = false}) async {
     messages = await messagesDatabaseService.getMessages();
 
     if (ApiService.loggedIn) {
-      var result = await messagesApiService
-          .getMessages(DateTime.now().add(Duration(days: 10)), messageCount: 0);
+      var result = await messagesApiService.getMessages(
+          (loadMore ? messages.lastOrNull?.date : messages.firstOrNull?.date) ??
+              DateTime.now(),
+          isRefresh: !loadMore);
 
       if (result.value != null) {
         //print("THE SUCCESS VALUE: ${result.value?.firstOrNull?.toString()}");

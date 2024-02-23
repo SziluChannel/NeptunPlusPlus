@@ -49,13 +49,26 @@ class _MessagesScreenState extends State<MessagesScreen> {
           }),
           child: SingleChildScrollView(
             physics: AlwaysScrollableScrollPhysics(),
-            child: Builder(builder: (context) {
-              if (messagesViewmodel.messages.isNotEmpty) {
-                return singleMessage(messagesViewmodel, context);
-              } else {
-                return Container();
-              }
-            }),
+            child: Column(
+              children: [
+                Builder(builder: (context) {
+                  if (messagesViewmodel.messages.isNotEmpty) {
+                    return singleMessage(messagesViewmodel, context);
+                  } else {
+                    return Container();
+                  }
+                }),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      messagesViewmodel.getMessages(loadMore: true);
+                    },
+                    child: Text("Load more"),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

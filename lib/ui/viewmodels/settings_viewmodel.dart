@@ -52,6 +52,14 @@ class SettingsViewmodel extends ChangeNotifier {
     return false;
   }
 
+  void clearKey() async {
+    var creds = await credentialsDatabaseService.getCredentials();
+    var newKey = Credential(creds.first.username, creds.first.password, "");
+    credentialsDatabaseService.updateCredential(newKey);
+    keySaved = false;
+    notifyListeners();
+  }
+
   void clearCredentials() async {
     credentialsDatabaseService.deleteCredentials();
     keySaved = false;
