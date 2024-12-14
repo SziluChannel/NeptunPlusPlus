@@ -18,8 +18,9 @@ class MessagesScreen extends StatefulWidget {
 class _MessagesScreenState extends State<MessagesScreen> {
   @override
   void initState() {
-    Future.microtask(() =>
-        Provider.of<MessagesViewmodel>(context, listen: false).getMessages());
+    Future.microtask(() {
+      Provider.of<MessagesViewmodel>(context, listen: false).getMessages();
+    });
     super.initState();
   }
 
@@ -59,6 +60,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   }
                 }),
                 Padding(
+                  // load more button
                   padding: const EdgeInsets.all(16.0),
                   child: ElevatedButton(
                     onPressed: () {

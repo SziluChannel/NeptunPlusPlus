@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:neptun_app/data/models/event.dart';
 import 'package:neptun_app/ui/screens/main_app_frame.dart';
+import 'package:neptun_app/ui/viewmodels/personal_viewmodel.dart';
 import 'package:neptun_app/ui/viewmodels/timetable_viewmodel.dart';
 import 'package:provider/provider.dart';
 
@@ -17,8 +18,10 @@ class TimetableScreen extends StatefulWidget {
 class _TimetableScreenState extends State<TimetableScreen> {
   @override
   void initState() {
-    Future.microtask(() =>
-        Provider.of<TimetableViewModel>(context, listen: false).getEvents());
+    Future.microtask(() {
+      Provider.of<PersonalViewmodel>(context, listen: false).getPersonalData();
+      Provider.of<TimetableViewModel>(context, listen: false).getEvents();
+    });
     super.initState();
   }
 

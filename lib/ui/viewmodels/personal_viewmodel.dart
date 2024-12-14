@@ -22,7 +22,6 @@ class PersonalViewmodel extends ChangeNotifier {
       var result = await personalApiService.getPersonalData();
 
       if (result.value != null) {
-        print("THE PERSONAL DATA: ${result.value}");
         data = result.value;
         personalDatabaseService.insertPersonalData(result.value!);
       } else {

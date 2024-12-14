@@ -2,11 +2,7 @@ class Result<T, E> {
   T? value;
   E? error;
 
-  Result.Ok(T value) {
-    this.value = value;
-  }
+  Result.Ok(T this.value);
 
-  Result.Err(E error) {
-    this.error = error;
-  }
+  Result.Err(E this.error);
 }

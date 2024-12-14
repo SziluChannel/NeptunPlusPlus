@@ -8,6 +8,19 @@ class TrainingApiService {
 
   Future<Result<List<(String, String)>, String>> getTrainingIds() async {
     try {
+      await ApiService.dio.post(
+        trainingIdPath,
+        data: FormData.fromMap(
+          {
+            "ToolkitScriptManager1":
+                "ToolkitScriptManager1|upFunction\$c_messages\$upMain\$upGrid\$gridMessages",
+            "ToolkitScriptManager1_HiddenField": "",
+            "__EVENTTARGET": "SDAUpdatePanel1\$lbtnChangeTraining",
+            "__EVENTARGUMENT": "",
+            "__ASYNCPOST": "true",
+          },
+        ),
+      );
       var response = await ApiService.dio.post(
         trainingIdPath,
         data: FormData.fromMap(
